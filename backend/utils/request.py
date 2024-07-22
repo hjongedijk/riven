@@ -61,7 +61,7 @@ class ResponseObject:
                     return json.loads(response.content)
                 return json.loads(response.content, object_hook=lambda item: SimpleNamespace(**item))
             elif "application/xml" in content_type or "text/xml" in content_type:
-                return xml_to_simplenamespace(response.content)
+                return parse_xml(response.content)
             elif "application/rss+xml" in content_type or "application/atom+xml" in content_type:
                 return parse_xml(response.content)
             else:

@@ -1,5 +1,7 @@
 """Plex Watchlist Module"""
 
+from requests import get
+
 from typing import Generator, Union
 
 from program.media.item import Episode, MediaItem, Movie, Season, Show
@@ -80,7 +82,8 @@ class PlexWatchlist:
                 if not response.is_ok:
                     logger.error(f"Failed to fetch Plex RSS feed from {rss_url}: HTTP {response.status_code}")
                     continue
-                yield self._extract_imdb_ids(response.data.channel.item.guid)
+                logger.info(len(response.data.items))
+                yield self._extract_imdb_ids(response.data.items)
             except Exception as e:
                 logger.error(f"An unexpected error occurred while fetching Plex RSS feed from {rss_url}: {e}")
 
@@ -115,10 +118,12 @@ class PlexWatchlist:
         logger.debug(f"Failed to fetch IMDb ID for ratingKey: {ratingKey}")
         return None
 
-    def _extract_imdb_ids(self, guids):
+    def _extract_imdb_ids(self, items):
         """Helper method to extract IMDb IDs from guids"""
-        for guid in guids:
-            if guid.startswith("imdb://"):
-                imdb_id = guid.split("//")[-1]
-                if imdb_id:
-                    yield imdb_id
+        for item in items:
+            for guid in item.guids:
+                if guid.startswith("imdb://"):
+                    imdb_id = guid.split("//")[-1]
+                    if imdb_id:
+                        logger.info(imdb_id)
+                        yield imdb_id
